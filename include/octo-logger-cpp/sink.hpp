@@ -30,13 +30,36 @@ class Sink
 
   protected:
     const SinkConfig& config() const;
-    std::string formatted_log(Log const& log, Channel const& channel) const;
+    const std::string origin_;
+
+    enum class LineFormat {
+      PLAINTEXT_LONG = 0,
+      PLAINTEXT_SHORT = 1,
+      JSON = 2,
+      DEFAULT = PLAINTEXT_LONG
+    };
+
+    std::string formatted_log_plaintext_long(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info) const;
+    std::string formatted_log_plaintext_short(Log const& log, Channel const& channel) const;
+    std::string formatted_log_JSON(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info) const;
+
+    inline std::string formatted_log(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info, LineFormat format = LineFormat::DEFAULT) const {
+      switch(format)  {
+        case LineFormat::PLAINTEXT_LONG:
+          return formatted_log_plaintext_long(log, channel,  context_info, disable_context_info);
+        case LineFormat::PLAINTEXT_SHORT:
+          return formatted_log_plaintext_short(log, channel);
+        case LineFormat::JSON:
+          return formatted_log_JSON(log, channel,  context_info);
+      }
+    }
+
     [[nodiscard]] virtual std::string formatted_context_info(Log const& log,
                                                              Channel const& channel,
                                                              Logger::ContextInfo const& context_info) const;
 
   public:
-    explicit Sink(const SinkConfig& config);
+    explicit Sink(const SinkConfig& config, std::string const & origin);
     virtual ~Sink() = default;
 
     virtual void dump(const Log& log, const Channel& channel, Logger::ContextInfo const& context_info) = 0;

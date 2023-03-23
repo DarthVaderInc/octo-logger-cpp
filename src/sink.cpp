@@ -13,6 +13,7 @@
 #include <fmt/format.h>
 #include <iomanip>
 #include <thread>
+#include <nlohmann/json.hpp>
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -22,7 +23,7 @@
 
 namespace octo::logger
 {
-std::string Sink::formatted_log(Log const& log, Channel const& channel) const
+std::string Sink::formatted_log_plaintext_long(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info) const
 {
     char dtf[1024];
     std::stringstream ss;
@@ -40,7 +41,89 @@ std::string Sink::formatted_log(Log const& log, Channel const& channel) const
        << Log::level_to_string(log.log_level())[0] << "][" << channel.channel_name() << "][PID(" << getpid()
        << ")][TID(" << std::this_thread::get_id() << ")]" << extra_id << ": " << log.stream()->str();
 
+    if (!disable_context_info && !context_info.empty())
+    {
+        ss << "\n" << formatted_context_info(log, channel, context_info);
+    }
+
     return ss.str();
+}
+
+static void init_context_info(nlohmann::json& dst,
+                                       Log const& log,
+                                       Channel const& channel,
+                                       Logger::ContextInfo const& context_info)
+{
+    switch (dst.type())
+    {
+        case nlohmann::json::value_t::null:
+            dst = nlohmann::json::object();
+        case nlohmann::json::value_t::object:
+            break;
+        default:
+            throw std::runtime_error(fmt::format("Wrong context_info destination type {}", dst.type_name()));
+    }
+
+    for (auto const& itr : context_info)
+    {
+        if (!dst.contains(itr.first))
+        {
+            dst[itr.first.data()] = itr.second;
+        }
+    }
+
+    if (!log.extra_identifier().empty())
+    {
+        dst["session_id"] = log.extra_identifier();
+    }
+}
+
+static nlohmann::json init_context_info(Log const& log,
+                                                 Channel const& channel,
+                                                 Logger::ContextInfo const& context_info)
+{
+    nlohmann::json j(nlohmann::json::value_t::object);
+    init_context_info(j, log, channel, context_info);
+    return std::move(j);
+}
+
+std::string Sink::formatted_log_plaintext_short(Log const& log, Channel const& channel) const
+{
+        std::stringstream ss;
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(log.time_created().time_since_epoch());
+        auto fraction = ms.count() % 1000;
+        std::string extra_id = "";
+        if (!log.extra_identifier().empty())
+        {
+            extra_id = "[" + log.extra_identifier() + "]";
+        }
+        ss << "[MS(" << std::setfill('0') << std::setw(3) << fraction << ")]["
+           << Log::level_to_string(log.log_level())[0] << "][" << channel.channel_name() << "][TID("
+           << std::this_thread::get_id() << ")]" << extra_id << ": " << log.stream()->str();
+        return ss.str();
+}
+
+
+std::string Sink::formatted_log_JSON(Log const& log,
+                                           Channel const& channel,
+                                           Logger::ContextInfo const& context_info) const
+{
+    nlohmann::json j;
+    std::stringstream ss;
+    std::time_t log_time_t = std::chrono::system_clock::to_time_t(log.time_created());
+    ss << std::put_time(std::localtime(&log_time_t), "%FT%T%z");
+    j["message"] = log.stream()->str();
+    j["origin"] = origin_;
+    j["origin_service_name"] = channel.channel_name();
+    j["timestamp"] = ss.str(); // ISO 8601
+    auto log_level_str = Log::level_to_string(log.log_level());
+    std::transform(log_level_str.begin(), log_level_str.end(), log_level_str.begin(), ::toupper);
+    j["log_level"] = log_level_str;
+    j["origin_func_name"] = "";
+
+    j["context_info"] = init_context_info(log, channel, context_info);
+
+    return j.dump();
 }
 
 std::string Sink::formatted_context_info(Log const& log,
@@ -65,7 +148,7 @@ const std::string& Sink::sink_name() const
     return config_.sink_name();
 }
 
-Sink::Sink(const SinkConfig& config) : config_(config)
+Sink::Sink(const SinkConfig& config, std::string const & origin) : config_(config), origin_(std::move(origin))
 {
 }
 } // namespace octo::logger

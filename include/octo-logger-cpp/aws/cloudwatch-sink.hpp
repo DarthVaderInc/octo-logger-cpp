@@ -88,14 +88,6 @@ class CloudWatchSink : public Sink
     void send_log(CloudWatchLog&& log);
     std::string log_stream_name(const Log& log, const Channel& channel) const;
     void cloudwatch_logs_thread();
-    std::string formatted_json(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info) const;
-    void init_context_info(nlohmann::json& dst,
-                           Log const& log,
-                           Channel const& channel,
-                           Logger::ContextInfo const& context_info) const;
-    nlohmann::json init_context_info(Log const& log,
-                                     Channel const& channel,
-                                     Logger::ContextInfo const& context_info) const;
 
   public:
     CloudWatchSink(SinkConfig const& config,
