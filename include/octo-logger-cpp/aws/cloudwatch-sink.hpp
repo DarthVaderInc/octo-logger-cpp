@@ -74,7 +74,6 @@ class CloudWatchSink : public Sink
     LogStreamType log_stream_type_;
     bool include_date_on_log_stream_;
     bool is_running_;
-    std::string origin_;
     std::string log_group_name_;
     std::unique_ptr<std::thread> cloudwatch_logs_thread_;
     std::condition_variable logs_cond_;

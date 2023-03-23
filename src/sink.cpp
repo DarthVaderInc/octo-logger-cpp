@@ -8,7 +8,7 @@
  * @copyright Copyright (c) 2022
  *
  */
-
+#define OCTO_UNITTEST 1
 #include "octo-logger-cpp/sink.hpp"
 #include <fmt/format.h>
 #include <iomanip>
@@ -49,7 +49,7 @@ std::string Sink::formatted_log_plaintext_long(Log const& log, Channel const& ch
     return ss.str();
 }
 
-static void init_context_info(nlohmann::json& dst,
+static void init_context_info_(nlohmann::json& dst,
                                        Log const& log,
                                        Channel const& channel,
                                        Logger::ContextInfo const& context_info)
@@ -78,13 +78,28 @@ static void init_context_info(nlohmann::json& dst,
     }
 }
 
-static nlohmann::json init_context_info(Log const& log,
+static nlohmann::json init_context_info_(Log const& log,
                                                  Channel const& channel,
                                                  Logger::ContextInfo const& context_info)
 {
     nlohmann::json j(nlohmann::json::value_t::object);
-    init_context_info(j, log, channel, context_info);
+    init_context_info_(j, log, channel, context_info);
     return std::move(j);
+}
+
+void octo::logger::unittests::init_context_info(nlohmann::json& dst,
+                                       Log const& log,
+                                       Channel const& channel,
+                                       Logger::ContextInfo const& context_info)
+{
+    init_context_info_(dst, log, channel, context_info);
+}
+
+nlohmann::json octo::logger::unittests::init_context_info(Log const& log,
+                                                 Channel const& channel,
+                                                 Logger::ContextInfo const& context_info)
+{
+    return init_context_info_(log, channel, context_info);
 }
 
 std::string Sink::formatted_log_plaintext_short(Log const& log, Channel const& channel) const
@@ -121,7 +136,7 @@ std::string Sink::formatted_log_JSON(Log const& log,
     j["log_level"] = log_level_str;
     j["origin_func_name"] = "";
 
-    j["context_info"] = init_context_info(log, channel, context_info);
+    j["context_info"] = init_context_info_(log, channel, context_info);
 
     return j.dump();
 }

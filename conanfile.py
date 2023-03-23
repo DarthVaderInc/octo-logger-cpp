@@ -59,8 +59,8 @@ class OctoLoggerCPPConan(ConanFile):
         self.requires("catch2/3.1.0")
         self.requires("fmt/9.0.0")
         self.requires("trompeloeil/42")
+        self.requires("nlohmann_json/3.11.2")
         if self.options.with_aws:
-            self.requires("nlohmann_json/3.11.2")
             self.requires("aws-sdk-cpp/1.9.234")
 
     def build(self):
@@ -81,10 +81,9 @@ class OctoLoggerCPPConan(ConanFile):
         self.cpp_info.set_property("cmake_target_name", "octo::octo-logger-cpp")
         self.cpp_info.set_property("pkg_config_name", "octo-logger-cpp")
         self.cpp_info.components["libocto-logger-cpp"].libs = ["octo-logger-cpp"]
-        self.cpp_info.components["libocto-logger-cpp"].requires = ["fmt::fmt"]
+        self.cpp_info.components["libocto-logger-cpp"].requires = ["fmt::fmt"," nlohmann_json::nlohmann_json"]
         if self.options.with_aws:
             self.cpp_info.components["libocto-logger-cpp"].requires.extend([
-                "nlohmann_json::nlohmann_json",
                 "aws-sdk-cpp::monitoring"
             ])
         self.cpp_info.filenames["cmake_find_package"] = "octo-logger-cpp"
