@@ -16,7 +16,7 @@
 
 namespace octo::logger
 {
-SysLogSink::SysLogSink(const SinkConfig& config) : Sink(config, "")
+SysLogSink::SysLogSink(const SinkConfig& config) : Sink(config, "", extract_format_with_default(config, LineFormat::PLAINTEXT_SHORT )) 
 {
     sys_log_name_ = config.option_default(SinkConfig::SinkOption::SYSLOG_LOG_NAME, "octo-logger-cpp");
 }
@@ -25,7 +25,7 @@ void SysLogSink::dump(const Log& log, const Channel& channel, Logger::ContextInf
 {
     if (log.stream())
     {
-        std::string line{formatted_log(log, channel, context_info,false, LineFormat::PLAINTEXT_SHORT)};
+        std::string line{formatted_log(log, channel, context_info,false)};
         openlog(sys_log_name_.c_str(), LOG_PID | LOG_CONS, LOG_AUTHPRIV);
         syslog(LOG_INFO | LOG_AUTHPRIV, "%s", line.c_str());
         closelog();

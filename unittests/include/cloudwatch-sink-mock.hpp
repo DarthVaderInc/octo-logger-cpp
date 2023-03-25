@@ -64,7 +64,7 @@ class CloudWatchSink::CloudWatchSinkMock : public CloudWatchSink
                                        Channel const& channel,
                                        Logger::ContextInfo const& context_info) const
     {
-        return CloudWatchSink::formatted_log(log, channel, context_info, false, LineFormat::JSON);
+        return CloudWatchSink::formatted_log(log, channel, context_info, false);
     }
 
     void init_context_info_wrapper(nlohmann::json& dst,

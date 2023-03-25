@@ -166,7 +166,7 @@ const std::string& Sink::sink_name() const
     return config_.sink_name();
 }
 
-Sink::Sink(const SinkConfig& config, std::string const & origin) : config_(config), origin_(std::move(origin))
+Sink::Sink(const SinkConfig& config, std::string const & origin, LineFormat format) : config_(config), origin_(std::move(origin)), line_format_(format)
 {
 }
 } // namespace octo::logger

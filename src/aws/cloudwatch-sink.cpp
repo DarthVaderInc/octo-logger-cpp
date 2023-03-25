@@ -176,7 +176,7 @@ CloudWatchSink::CloudWatchSink(SinkConfig const& config,
                                bool include_date_on_log_stream,
                                std::string const& log_group_name,
                                LogGroupTags log_group_tags)
-    : Sink(config, std::move(origin)),
+    : Sink(config, std::move(origin), LineFormat::JSON),
       log_stream_type_(log_stream_type),
       include_date_on_log_stream_(include_date_on_log_stream),
       log_group_name_(log_group_name),
@@ -238,7 +238,7 @@ void CloudWatchSink::dump(Log const& log, Channel const& channel, Logger::Contex
     try
     {
         Aws::CloudWatchLogs::Model::InputLogEvent e;
-        std::string line{formatted_log(log, channel, context_info, false, LineFormat::JSON)};
+        std::string line{formatted_log(log, channel, context_info, false)};
         // Set the event and add it to the queue
         e.WithTimestamp(Aws::Utils::DateTime(log.time_created()).Millis())
             .WithMessage(line.c_str());

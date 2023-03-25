@@ -25,21 +25,23 @@ namespace octo::logger
 {
 class Sink
 {
+  protected:
+    enum class LineFormat {
+      PLAINTEXT_LONG = 0,    // Used in console
+      PLAINTEXT_SHORT = 1,   // Used in syslog
+#ifdef ENABLE_JSON_FORMATTING
+      JSON = 2,
+#endif
+      DEFAULT = PLAINTEXT_LONG
+    };
+
   private:
     const SinkConfig config_;
 
   protected:
     const SinkConfig& config() const;
     const std::string origin_;
-
-    enum class LineFormat {
-      PLAINTEXT_LONG = 0,
-      PLAINTEXT_SHORT = 1,
-#ifdef ENABLE_JSON_FORMATTING
-      JSON = 2,
-#endif
-      DEFAULT = PLAINTEXT_LONG
-    };
+    const LineFormat line_format_;
 
     std::string formatted_log_plaintext_long(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info) const;
     std::string formatted_log_plaintext_short(Log const& log, Channel const& channel) const;
@@ -47,8 +49,8 @@ class Sink
     std::string formatted_log_JSON(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info) const;
 #endif
 
-    inline std::string formatted_log(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info, LineFormat format = LineFormat::DEFAULT) const {
-      switch(format)  {
+    inline std::string formatted_log(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info) const {
+      switch(line_format_)  {
         case LineFormat::PLAINTEXT_LONG:
           return formatted_log_plaintext_long(log, channel,  context_info, disable_context_info);
         case LineFormat::PLAINTEXT_SHORT:
@@ -60,12 +62,16 @@ class Sink
       }
     }
 
+    inline static LineFormat extract_format_with_default(const SinkConfig& config, LineFormat default_format) {
+      return LineFormat(config.option_default(SinkConfig::SinkOption::LINE_FORMAT, int(default_format)));
+    }
+
     [[nodiscard]] virtual std::string formatted_context_info(Log const& log,
                                                              Channel const& channel,
                                                              Logger::ContextInfo const& context_info) const;
 
   public:
-    explicit Sink(const SinkConfig& config, std::string const & origin);
+    explicit Sink(const SinkConfig& config, std::string const & origin, LineFormat format);
     virtual ~Sink() = default;
 
     virtual void dump(const Log& log, const Channel& channel, Logger::ContextInfo const& context_info) = 0;
