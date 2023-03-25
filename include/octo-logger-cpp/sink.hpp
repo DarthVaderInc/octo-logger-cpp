@@ -35,13 +35,17 @@ class Sink
     enum class LineFormat {
       PLAINTEXT_LONG = 0,
       PLAINTEXT_SHORT = 1,
+#ifdef ENABLE_JSON_FORMATTING
       JSON = 2,
+#endif
       DEFAULT = PLAINTEXT_LONG
     };
 
     std::string formatted_log_plaintext_long(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info) const;
     std::string formatted_log_plaintext_short(Log const& log, Channel const& channel) const;
+#ifdef ENABLE_JSON_FORMATTING
     std::string formatted_log_JSON(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info) const;
+#endif
 
     inline std::string formatted_log(Log const& log, Channel const& channel, Logger::ContextInfo const& context_info, bool disable_context_info, LineFormat format = LineFormat::DEFAULT) const {
       switch(format)  {
@@ -49,8 +53,10 @@ class Sink
           return formatted_log_plaintext_long(log, channel,  context_info, disable_context_info);
         case LineFormat::PLAINTEXT_SHORT:
           return formatted_log_plaintext_short(log, channel);
+#ifdef ENABLE_JSON_FORMATTING
         case LineFormat::JSON:
           return formatted_log_JSON(log, channel,  context_info);
+#endif
       }
     }
 
@@ -68,7 +74,7 @@ class Sink
 typedef std::shared_ptr<Sink> SinkPtr;
 } // namespace octo::logger
 
-#if OCTO_UNITTEST
+#if ENABLE_JSON_FORMATTING && OCTO_UNITTEST
 #include <nlohmann/json.hpp>
 namespace octo::logger::unittests
 {

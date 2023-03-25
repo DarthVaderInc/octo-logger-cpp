@@ -11,10 +11,12 @@ class OctoLoggerCPPConan(ConanFile):
     author = "Ofir Iluz"
     settings = "os", "compiler", "build_type", "arch"
     options = {
-        "with_aws": [True, False]
+        "with_aws": [True, False],
+        "enable_json_formatting": [True, False]
     }
     default_options = {
-        "with_aws": False
+        "with_aws": False,
+        "enable_json_formatting" : False
     }
 
     @property
@@ -29,6 +31,7 @@ class OctoLoggerCPPConan(ConanFile):
     def configure(self):
         if self.options.with_aws:
             self.options["aws-sdk-cpp"].logs = True
+            self.options.enable_json_formatting = True
 
     def generate(self):
         tc = CMakeToolchain(self)
@@ -59,14 +62,16 @@ class OctoLoggerCPPConan(ConanFile):
         self.requires("catch2/3.1.0")
         self.requires("fmt/9.0.0")
         self.requires("trompeloeil/42")
-        self.requires("nlohmann_json/3.11.2")
+        if self.options.enable_json_formatting:
+            self.requires("nlohmann_json/3.11.2")
         if self.options.with_aws:
             self.requires("aws-sdk-cpp/1.9.234")
 
     def build(self):
         cmake = CMake(self)
         cmake.configure(variables={
-            "WITH_AWS": self.options.with_aws
+            "WITH_AWS": self.options.with_aws,
+            "ENABLE_JSON_FORMATTING" : self.options.enable_json_formatting
         })
         cmake.build()
         if str(self.settings.os) != "Windows":
@@ -81,7 +86,8 @@ class OctoLoggerCPPConan(ConanFile):
         self.cpp_info.set_property("cmake_target_name", "octo::octo-logger-cpp")
         self.cpp_info.set_property("pkg_config_name", "octo-logger-cpp")
         self.cpp_info.components["libocto-logger-cpp"].libs = ["octo-logger-cpp"]
-        self.cpp_info.components["libocto-logger-cpp"].requires = ["fmt::fmt"," nlohmann_json::nlohmann_json"]
+        if self.options.enable_json_formatting:
+            self.cpp_info.components["libocto-logger-cpp"].requires = ["fmt::fmt"," nlohmann_json::nlohmann_json"]
         if self.options.with_aws:
             self.cpp_info.components["libocto-logger-cpp"].requires.extend([
                 "aws-sdk-cpp::monitoring"

@@ -13,7 +13,9 @@
 #include <fmt/format.h>
 #include <iomanip>
 #include <thread>
+#if ENABLE_JSON_FORMATTING
 #include <nlohmann/json.hpp>
+#endif
 #ifndef _WIN32
 #include <unistd.h>
 #else
@@ -49,6 +51,7 @@ std::string Sink::formatted_log_plaintext_long(Log const& log, Channel const& ch
     return ss.str();
 }
 
+#if ENABLE_JSON_FORMATTING
 static void init_context_info_(nlohmann::json& dst,
                                        Log const& log,
                                        Channel const& channel,
@@ -102,23 +105,6 @@ nlohmann::json octo::logger::unittests::init_context_info(Log const& log,
     return init_context_info_(log, channel, context_info);
 }
 
-std::string Sink::formatted_log_plaintext_short(Log const& log, Channel const& channel) const
-{
-        std::stringstream ss;
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(log.time_created().time_since_epoch());
-        auto fraction = ms.count() % 1000;
-        std::string extra_id = "";
-        if (!log.extra_identifier().empty())
-        {
-            extra_id = "[" + log.extra_identifier() + "]";
-        }
-        ss << "[MS(" << std::setfill('0') << std::setw(3) << fraction << ")]["
-           << Log::level_to_string(log.log_level())[0] << "][" << channel.channel_name() << "][TID("
-           << std::this_thread::get_id() << ")]" << extra_id << ": " << log.stream()->str();
-        return ss.str();
-}
-
-
 std::string Sink::formatted_log_JSON(Log const& log,
                                            Channel const& channel,
                                            Logger::ContextInfo const& context_info) const
@@ -139,6 +125,23 @@ std::string Sink::formatted_log_JSON(Log const& log,
     j["context_info"] = init_context_info_(log, channel, context_info);
 
     return j.dump();
+}
+#endif
+
+std::string Sink::formatted_log_plaintext_short(Log const& log, Channel const& channel) const
+{
+        std::stringstream ss;
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(log.time_created().time_since_epoch());
+        auto fraction = ms.count() % 1000;
+        std::string extra_id = "";
+        if (!log.extra_identifier().empty())
+        {
+            extra_id = "[" + log.extra_identifier() + "]";
+        }
+        ss << "[MS(" << std::setfill('0') << std::setw(3) << fraction << ")]["
+           << Log::level_to_string(log.log_level())[0] << "][" << channel.channel_name() << "][TID("
+           << std::this_thread::get_id() << ")]" << extra_id << ": " << log.stream()->str();
+        return ss.str();
 }
 
 std::string Sink::formatted_context_info(Log const& log,
