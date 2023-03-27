@@ -85,19 +85,22 @@ class OctoLoggerCPPConan(ConanFile):
         self.cpp_info.set_property("cmake_file_name", "octo-logger-cpp")
         self.cpp_info.set_property("cmake_target_name", "octo::octo-logger-cpp")
         self.cpp_info.set_property("pkg_config_name", "octo-logger-cpp")
-        self.cpp_info.components["libocto-logger-cpp"].libs = ["octo-logger-cpp"]
+        component = self.cpp_info.components["libocto-logger-cpp"]
+
+        component.libs = ["octo-logger-cpp"]
         if self.options.enable_json_formatting:
-            self.cpp_info.components["libocto-logger-cpp"].requires = ["fmt::fmt"," nlohmann_json::nlohmann_json"]
+            component.requires = ["fmt::fmt"," nlohmann_json::nlohmann_json"]
         if self.options.with_aws:
-            self.cpp_info.components["libocto-logger-cpp"].requires.extend([
+            component.requires.extend([
                 "aws-sdk-cpp::monitoring"
             ])
+        component.names["cmake_find_package"] = "octo-logger-cpp"
+        component.names["cmake_find_package_multi"] = "octo-logger-cpp"
+        component.set_property("cmake_target_name", "octo::octo-logger-cpp")
+        component.set_property("pkg_config_name", "octo-logger-cpp")
+
         self.cpp_info.filenames["cmake_find_package"] = "octo-logger-cpp"
         self.cpp_info.filenames["cmake_find_package_multi"] = "octo-logger-cpp"
         self.cpp_info.names["cmake_find_package"] = "octo-logger-cpp"
         self.cpp_info.names["cmake_find_package_multi"] = "octo-logger-cpp"
         self.cpp_info.names["pkg_config"] = "octo-logger-cpp"
-        self.cpp_info.components["libocto-logger-cpp"].names["cmake_find_package"] = "octo-logger-cpp"
-        self.cpp_info.components["libocto-logger-cpp"].names["cmake_find_package_multi"] = "octo-logger-cpp"
-        self.cpp_info.components["libocto-logger-cpp"].set_property("cmake_target_name", "octo::octo-logger-cpp")
-        self.cpp_info.components["libocto-logger-cpp"].set_property("pkg_config_name", "octo-logger-cpp")
