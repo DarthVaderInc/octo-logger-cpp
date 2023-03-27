@@ -25,7 +25,7 @@ namespace octo::logger
 {
 class Sink
 {
-  protected:
+  public:
     enum class LineFormat {
       PLAINTEXT_LONG = 0,    // Used in console
       PLAINTEXT_SHORT = 1,   // Used in syslog
