@@ -91,8 +91,12 @@ class OctoLoggerCPPConan(ConanFile):
         component.requires = ["fmt::fmt"]
         if self.options.enable_json_formatting:
             component.requires.append("nlohmann_json::nlohmann_json")
+            component.defines.append('OCTO_ENABLE_JSON_FORMATTING')
+            self.cpp_info.defines.append('OCTO_ENABLE_JSON_FORMATTING')
         if self.options.with_aws:
             component.requires.append("aws-sdk-cpp::monitoring")
+            component.defines.append('WITH_AWS')
+            self.cpp_info.defines.append('WITH_AWS')
         component.names["cmake_find_package"] = "octo-logger-cpp"
         component.names["cmake_find_package_multi"] = "octo-logger-cpp"
         component.set_property("cmake_target_name", "octo::octo-logger-cpp")
