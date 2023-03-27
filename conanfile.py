@@ -88,12 +88,11 @@ class OctoLoggerCPPConan(ConanFile):
         component = self.cpp_info.components["libocto-logger-cpp"]
 
         component.libs = ["octo-logger-cpp"]
+        component.requires = ["fmt::fmt"]
         if self.options.enable_json_formatting:
-            component.requires = ["fmt::fmt"," nlohmann_json::nlohmann_json"]
+            component.requires.append("nlohmann_json::nlohmann_json")
         if self.options.with_aws:
-            component.requires.extend([
-                "aws-sdk-cpp::monitoring"
-            ])
+            component.requires.append("aws-sdk-cpp::monitoring")
         component.names["cmake_find_package"] = "octo-logger-cpp"
         component.names["cmake_find_package_multi"] = "octo-logger-cpp"
         component.set_property("cmake_target_name", "octo::octo-logger-cpp")
