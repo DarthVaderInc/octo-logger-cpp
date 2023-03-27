@@ -80,7 +80,7 @@ class Sink
 typedef std::shared_ptr<Sink> SinkPtr;
 } // namespace octo::logger
 
-#if ENABLE_JSON_FORMATTING && OCTO_UNITTEST
+#if defined(ENABLE_JSON_FORMATTING) && defined(OCTO_UNITTEST)
 #include <nlohmann/json.hpp>
 namespace octo::logger::unittests
 {

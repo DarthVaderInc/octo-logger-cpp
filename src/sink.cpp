@@ -13,7 +13,7 @@
 #include <fmt/format.h>
 #include <iomanip>
 #include <thread>
-#if ENABLE_JSON_FORMATTING
+#ifdef ENABLE_JSON_FORMATTING
 #include <nlohmann/json.hpp>
 #endif
 #ifndef _WIN32
@@ -51,7 +51,7 @@ std::string Sink::formatted_log_plaintext_long(Log const& log, Channel const& ch
     return ss.str();
 }
 
-#if ENABLE_JSON_FORMATTING
+#ifdef ENABLE_JSON_FORMATTING
 static void init_context_info_(nlohmann::json& dst,
                                        Log const& log,
                                        Channel const& channel,
